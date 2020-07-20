@@ -1,14 +1,14 @@
 const {db} = require('../util/admin')
 //get all posts
 exports.getAllPosts = (req,res) => {
-    db.collection('posts').get().then(data => {
+    db.collection('posts').orderBy('createdAt', 'desc').get().then(data => {
         let posts = []
         data.forEach(doc => {
             posts.push({
                 postID: doc.id,
                 body: doc.data().body,
                 userHandle: doc.data().userHandle,
-                createAt: doc.data().createAt,
+                createdAt: doc.data().createdAt,
                 userImage : doc.data().userImage,
                 likeCount : doc.data().likeCount,
                 commentCount : doc.data().commentCount

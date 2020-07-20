@@ -64,4 +64,6 @@ node_modules/
 # dotenv environment variables file
 .env
 
+# config files
 config.js
+whosgoing.json

@@ -1,10 +1,15 @@
 
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const {db,admin} = require('../util/admin')
 
 const firebase = require('firebase')
 
 const config =  require('../util/config')
+
+
 
 firebase.initializeApp(config)
 

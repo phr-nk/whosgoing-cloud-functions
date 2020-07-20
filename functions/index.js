@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 
-const {db} = require('./util/admin')
+const {db,admin} = require('./util/admin')
 
 const { commentOnPost, getAllPosts, postOnePost,getPost,likePost,unlikePost} = require('./handlers/posts')
 
@@ -10,6 +10,9 @@ const {signup,login, uploadImage, addUserDetails,getAuthUser,getUserDetails,mark
 
 
 const FBAuth = require('./util/fbAuth')
+
+
+
 
 const express = require('express')
 const app = express()
@@ -108,12 +111,28 @@ exports.createNotificationComment = functions.firestore.document("comments/{id}"
 })
 
 exports.onUserImageChange = functions.firestore.document('/users/{userId}').onUpdate( change => {
-    console.log(change.before.data())
-    console.log(change.after.data())
-
+    console.log(change.before.data().imageUrl)
+    console.log(change.after.data().imageUrl)
+    var storageRef = admin.storage().bucket();
+  
    if(change.before.data().imageUrl !== change.after.data().imageUrl)
    {
-       console.log('image has changed')
+    var previousImage = change.before.data().imageUrl;
+    let imageName = previousImage.match(/o\/(.*?)(\?|$)/)[1];
+    console.log('Previous iamge: ')
+    console.log(imageName)
+
+    var imageRef = storageRef.file(imageName);
+
+    // Delete the file
+    imageRef.delete().then(function() {
+        // File deleted successfully
+        console.log("previous user image deleted! ")
+    })
+    .catch(function(error) {
+      // Uh-oh, an error occurred!
+      console.log(error)
+    });
     const batch = db.batch()
 
     return db.collection('posts').where('userHandle' , '==', change.before.data().handle).get()
