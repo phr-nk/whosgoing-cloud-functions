@@ -2,7 +2,10 @@ const functions = require('firebase-functions');
 
 const {db,admin} = require('./util/admin')
 
-const { commentOnPost, getAllPosts, postOnePost,getPost,likePost,unlikePost} = require('./handlers/posts')
+const cors = require('cors');
+
+
+const { commentOnPost, getAllPosts, postOnePost,getPost,likePost,unlikePost,  deletePost} = require('./handlers/posts')
 
 
 
@@ -17,7 +20,7 @@ const FBAuth = require('./util/fbAuth')
 const express = require('express')
 const app = express()
 
-
+app.use(cors());
 
 
 
@@ -35,7 +38,7 @@ app.get('/post/:postId/unlike', FBAuth, unlikePost)
 
 app.post('/post/:postId/comment', FBAuth, commentOnPost)
 
-
+app.delete('/post/:postId', FBAuth, deletePost);
 
 //user routes
 app.post('/signup', signup)
@@ -121,18 +124,21 @@ exports.onUserImageChange = functions.firestore.document('/users/{userId}').onUp
     let imageName = previousImage.match(/o\/(.*?)(\?|$)/)[1];
     console.log('Previous iamge: ')
     console.log(imageName)
+    if(imageName !== 'default.png')
+    {
+      var imageRef = storageRef.file(imageName);
 
-    var imageRef = storageRef.file(imageName);
-
-    // Delete the file
-    imageRef.delete().then(function() {
-        // File deleted successfully
-        console.log("previous user image deleted! ")
-    })
-    .catch(function(error) {
-      // Uh-oh, an error occurred!
-      console.log(error)
-    });
+      // Delete the file
+      imageRef.delete().then(function() {
+          // File deleted successfully
+          console.log("previous user image deleted! ")
+      })
+      .catch(function(error) {
+        // Uh-oh, an error occurred!
+        console.log(error)
+      });
+    }
+ 
     const batch = db.batch()
 
     return db.collection('posts').where('userHandle' , '==', change.before.data().handle).get()
@@ -141,7 +147,9 @@ exports.onUserImageChange = functions.firestore.document('/users/{userId}').onUp
             const post = db.doc(`/posts/${doc.id}`)
             batch.update(post, {userImage : change.after.data().imageUrl})
         })
+        window.location.reload(false)
         return batch.commit()
+        
     })
    } else return true
 })

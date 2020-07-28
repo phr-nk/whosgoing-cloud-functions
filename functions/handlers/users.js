@@ -1,7 +1,5 @@
 
-import dotenv from 'dotenv';
 
-dotenv.config();
 
 const {db,admin} = require('../util/admin')
 

@@ -5,7 +5,7 @@ exports.getAllPosts = (req,res) => {
         let posts = []
         data.forEach(doc => {
             posts.push({
-                postID: doc.id,
+                postId: doc.id,
                 body: doc.data().body,
                 userHandle: doc.data().userHandle,
                 createdAt: doc.data().createdAt,
@@ -88,7 +88,10 @@ exports.commentOnPost = (req, res) => {
         {
             return res.status(404).json({error : "Post does not exist"})
         }
-        return db.collection("comments").add(newComment)
+        return doc.ref.update({ commentCount: doc.data().commentCount + 1 });
+    })
+    .then(() => {
+        return db.collection('comments').add(newComment);
     })
     .then(() => {
         res.json(newComment)
@@ -187,3 +190,26 @@ exports.unlikePost = (req,res) => {
     })
 
 }
+// Delete a post
+exports.deletePost = (req, res) => {
+    const document = db.doc(`/posts/${req.params.postId}`);
+    document
+      .get()
+      .then((doc) => {
+        if (!doc.exists) {
+          return res.status(404).json({ error: 'post not found' });
+        }
+        if (doc.data().userHandle !== req.user.handle) {
+          return res.status(403).json({ error: 'Unauthorized' });
+        } else {
+          return document.delete();
+        }
+      })
+      .then(() => {
+        res.json({ message: 'post deleted successfully' });
+      })
+      .catch((err) => {
+        console.error(err);
+        return res.status(500).json({ error: err.code });
+      });
+  };
