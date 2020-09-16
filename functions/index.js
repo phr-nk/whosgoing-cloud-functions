@@ -9,7 +9,7 @@ const { commentOnPost, getAllPosts, postOnePost,getPost,likePost,unlikePost,  de
 
 
 
-const {signup,login, uploadImage, addUserDetails,getAuthUser,getUserDetails,markNotificationsRead} = require('./handlers/users')
+const {signup,login, loginWithGoogle, uploadImage, addUserDetails,getAuthUser,getUserDetails,markNotificationsRead} = require('./handlers/users')
 
 
 const FBAuth = require('./util/fbAuth')
@@ -43,6 +43,7 @@ app.delete('/post/:postId', FBAuth, deletePost);
 //user routes
 app.post('/signup', signup)
 app.post('/login', login)
+app.post('/loginWithGoogle', loginWithGoogle)
 app.post('/user/image', FBAuth, uploadImage)
 app.post('/user', FBAuth, addUserDetails)
 app.get('/user', FBAuth, getAuthUser)
@@ -72,7 +73,7 @@ exports.createNotificationLike = functions.firestore.document('likes/{id}').onCr
               sender: snapshot.data().userHandle,
               type: 'like',
               read: false,
-              screamId: doc.id
+              postId: doc.id
             });
           }
         })
@@ -103,7 +104,7 @@ exports.createNotificationComment = functions.firestore.document("comments/{id}"
           sender: snapshot.data().userHandle,
           type: 'comment',
           read: false,
-          screamId: doc.id
+          postId: doc.id
         });
       }
     })
@@ -147,7 +148,6 @@ exports.onUserImageChange = functions.firestore.document('/users/{userId}').onUp
             const post = db.doc(`/posts/${doc.id}`)
             batch.update(post, {userImage : change.after.data().imageUrl})
         })
-        window.location.reload(false)
         return batch.commit()
         
     })

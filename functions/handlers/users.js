@@ -7,8 +7,6 @@ const firebase = require('firebase')
 
 const config =  require('../util/config')
 
-
-
 firebase.initializeApp(config)
 
 const {validateSignupData, validateLoginData, reduceUserDetails} = require('../util/validators')
@@ -92,6 +90,26 @@ exports.login = (req,res) => {
     
     
     })
+}
+exports.loginWithGoogle = (req,res) => {
+    
+var provider = new firebase.auth.GoogleAuthProvider()
+    firebase.auth().signInWithPopup(provider)
+    .then(data => {
+        var token = data.credentials.accessToken
+        var user = data.user
+        console.log(user)   
+        console.log(data)   
+        return  token
+    })
+    .then(token => {
+        return res.json({token})
+    })
+    .catch(err => {
+        return res.status(403).json({general : "Wrong creds"})
+    })
+
+
 }
 //user details
 exports.addUserDetails = (req, res) => {
